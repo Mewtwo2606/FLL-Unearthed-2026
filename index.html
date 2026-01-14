@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>FLL Unearthed 2026</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    padding: 20px;
+}
+
+.admin-only {
+    display: none;
+    background: #fff;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 6px;
+}
+
+.item {
+    background: white;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 6px;
+}
+
+img {
+    max-width: 100%;
+}
+</style>
+</head>
+
+<body>
+
+<h1>FLL Unearthed 2026</h1>
+
+<!-- ADMIN PANEL -->
+<div class="admin-only" id="adminPanel">
+
+<h2>Text hinzufügen</h2>
+<textarea id="textInput" placeholder="Text eingeben"></textarea>
+<button onclick="addText()">Speichern</button>
+
+<h2>Link hinzufügen</h2>
+<input id="linkText" placeholder="Link Text">
+<input id="linkUrl" placeholder="https://">
+<button onclick="addLink()">Speichern</button>
+
+<h2>Bild hinzufügen</h2>
+<input id="imageUrl" placeholder="Bild URL">
+<button onclick="addImage()">Speichern</button>
+
+</div>
+
+<hr>
+
+<h2>Inhalte</h2>
+<div id="content"></div>
+
+<script>
+const ADMIN_PASSWORD = "2606";
+let isAdmin = false;
+
+// Inhalte schon als Testdaten eingefügt
+let texts = [
+    "Eine Villa rustica ist ein ländliches Anwesen, das in der römischen Antike häufig vorkam. Diese Gebäude dienten in der Regel als Landhaus für wohlhabende Römer und waren oft mit landwirtschaftlichen Betrieben verbunden. Die Villa rustica umfasste typischerweise Wohnräume für die Familie, Arbeitsräume und oft auch Stallungen oder Scheunen für die Tiere.",
+    "Die Villa rustica war hauptsächlich ein Merkmal der wohlhabenden römischen Bürger, insbesondere der Patrizier. Plebejer besaßen in der Regel keine Villa rustica.",
+    "Auf dem Gelände der Villa Rustica gab es verschiedene Gebäude:\n1: Fachwerkhaus als Wirtschaftsgebäude (Scheune/Stall)\n2: Wohnhaus\n3: Unklar, evtl. Verwaltungsgebäude oder Holzfachwerk\n4: Wohnhäuser aller Art\n5: Kalkbrennöfen\n6 & 9: Magazin / Lagergebäude\n7: Steinbau",
+    "Die Villa Rustica gehörte dem römischen Kaiser, ist rechteckig auf 4 Hektar, das Hauptgebäude dient der Verwaltung mit Säulengang (Portikus). Die Domäne hat Wasserkanäle und Brunnen. Kaiser Traian hätte sie besucht, da er in Obergermanien Verwalter war."
+];
+
+let links = [];
+let images = [
+    "https://www.firstlegoleagues.mx/wp-content/uploads/2025/05/Diseno-sin-titulo-1.jpg"
+];
+
+function save() {
+    localStorage.setItem("texts", JSON.stringify(texts));
+    localStorage.setItem("links", JSON.stringify(links));
+    localStorage.setItem("images", JSON.stringify(images));
+}
+
+/* Tastenkombinationen */
+document.addEventListener("keydown", function(e) {
+
+    /* LOGIN: Strg + E */
+    if (e.ctrlKey && e.key.toLowerCase() === "e") {
+        e.preventDefault();
+        if (!isAdmin) {
+            const pw = prompt("Admin Passwort:");
+            if (pw === ADMIN_PASSWORD) {
+                isAdmin = true;
+                updateView();
+                alert("Admin Modus aktiviert");
+            } else {
+                alert("Falsches Passwort");
+            }
+        }
+    }
+
+    /* LOGOUT: Strg + L */
+    if (e.ctrlKey && e.key.toLowerCase() === "l") {
+        e.preventDefault();
+        if (isAdmin) {
+            isAdmin = false;
+            updateView();
+            alert("Admin Modus deaktiviert");
+        }
+    }
+});
+
+function updateView() {
+    document.querySelectorAll(".admin-only").forEach(el => {
+        el.style.display = isAdmin ? "block" : "none";
+    });
+    render();
+}
+
+function addText() {
+    if (!textInput.value) return;
+    texts.push(textInput.value);
+    textInput.value = "";
+    save();
+    render();
+}
+
+function addLink() {
+    if (!linkText.value || !linkUrl.value) return;
+    links.push({ text: linkText.value, url: linkUrl.value });
+    linkText.value = linkUrl.value = "";
+    save();
+    render();
+}
+
+function addImage() {
+    if (!imageUrl.value) return;
+    images.push(imageUrl.value);
+    imageUrl.value = "";
+    save();
+    render();
+}
+
+function remove(type, i) {
+    if (type === "text") texts.splice(i,1);
+    if (type === "link") links.splice(i,1);
+    if (type === "image") images.splice(i,1);
+    save();
+    render();
+}
+
+function render() {
+    content.innerHTML = "";
+
+    texts.forEach((t,i)=>{
+        content.innerHTML += `
+        <div class="item">
+            <p>${t.replace(/\n/g,"<br>")}</p>
+            ${isAdmin ? `<button onclick="remove('text',${i})">Löschen</button>` : ""}
+        </div>`;
+    });
+
+    links.forEach((l,i)=>{
+        content.innerHTML += `
+        <div class="item">
+            <a href="${l.url}" target="_blank">${l.text}</a>
+            ${isAdmin ? `<button onclick="remove('link',${i})">Löschen</button>` : ""}
+        </div>`;
+    });
+
+    images.forEach((img,i)=>{
+        content.innerHTML += `
+        <div class="item">
+            <img src="${img}">
+            ${isAdmin ? `<button onclick="remove('image',${i})">Löschen</button>` : ""}
+        </div>`;
+    });
+}
+
+updateView();
+</script>
+
+</body>
+</html>
